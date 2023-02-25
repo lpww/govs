@@ -10,42 +10,6 @@ import (
 	"github.com/thatisuday/commando"
 )
 
-type Env struct {
-	Key   string
-	Value string
-}
-
-var GOPATH = Env{"GOPATH", ""}
-
-var HOME = Env{"HOME", ""}
-
-func GetEnv(e Env, defaultValue string) Env {
-	v, ok := os.LookupEnv(e.Key)
-
-	if !ok || v == "" {
-		fmt.Printf("Warning: $%s not set. Using default value of %s\n", e.Key, defaultValue)
-		return Env{e.Key, defaultValue}
-	}
-
-	return Env{e.Key, v}
-}
-
-type Dirs struct {
-	Bin string
-	Src string
-}
-
-// todo: remove this fn and use ExpandEnv inline
-func GetDirs() Dirs {
-	home := GetEnv(HOME, "")
-	goPath := GetEnv(GOPATH, fmt.Sprintf("%s/go", home.Value))
-
-	return Dirs{
-		Bin: fmt.Sprintf("%s/bin", goPath.Value),
-		Src: fmt.Sprintf("%s/sdk", home.Value),
-	}
-}
-
 func installVersion(version string) error {
 	vUrl := fmt.Sprintf("golang.org/dl/go%s@latest", version)
 	install := exec.Command("go", "install", vUrl)
@@ -103,11 +67,11 @@ func Install(args map[string]commando.ArgValue) error {
 }
 
 func Set(args map[string]commando.ArgValue) error {
-	d := GetDirs()
+	d := pkg.GetBinDir()
 	v := args["version"].Value
 
-	vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
-	goBin := fmt.Sprintf("%s/go", d.Bin)
+	vBin := fmt.Sprintf("%s/go%s", d, v)
+	goBin := fmt.Sprintf("%s/go", d)
 
 	// todo: warn if the goroot is not $HOME/sdk/go* - why?
 
@@ -129,13 +93,14 @@ func Set(args map[string]commando.ArgValue) error {
 }
 
 func Remove(args map[string]commando.ArgValue) error {
-	d := GetDirs()
+	binDir := pkg.GetBinDir()
+	srcDir := pkg.GetSrcDir()
 	v := args["version"].Value
 
 	// todo: warn against removing currently set version
 
-	vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
-	vSrc := fmt.Sprintf("%s/go%s", d.Src, v)
+	vBin := fmt.Sprintf("%s/go%s", binDir, v)
+	vSrc := fmt.Sprintf("%s/go%s", srcDir, v)
 
 	if !pkg.FileExists(vBin) && !pkg.DirExists(vSrc) {
 		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs list` to see the installed versions", v))
