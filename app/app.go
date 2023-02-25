@@ -36,16 +36,23 @@ func Install(args map[string]commando.ArgValue) error {
 
 	if pkg.BinExists("go") {
 		return installVersion("go", v)
-	} else {
-		// todo: if they have go versions installed but not set, warn them and ask to set a go vesion before continuing
+	}
 
-		// todo: refactor to manually install the specified version instead of using a temp go version
-		// 1: extract the tarball to $HOME/sdk (pkg.GetSrcDir())
-		// 2. rename $HOME/sdk/go to $HOME/sdk/go<version>
-		// 3. copy $HOME/sdk/go<version> to pkg.GetBinDir()/go<version>
+	versions, err := getVersions()
+	if err != nil {
+		return err
+	}
+
+	if !pkg.BinExists("go") && len(versions) > 0 {
+		defaultBin := fmt.Sprintf("go%s", versions[0]) // use the first installed go version as a default
+		fmt.Printf("Warning: no default go version has been set. Using the existing %s to install go%s.\n", defaultBin, v)
+		return installVersion(defaultBin, v)
+	}
+
+	if !pkg.BinExists("go") {
 
 		// install temp go version if no bin found on the system
-		fmt.Println("Warning: no go binary detected. Installing a temporary one.")
+		fmt.Println("Warning: no go version found. Installing a temporary one.")
 
 		// create a temp dir
 		fmt.Println("Info: creating temp dir")
@@ -57,29 +64,27 @@ func Install(args map[string]commando.ArgValue) error {
 
 		// download go to tmp dir
 		fmt.Println("Info: downloading temp go binary")
-		tarGz := tmp + "/go1.20.1.tar.gz"
-		goDownloadUrl := "https://go.dev/dl/go1.20.1." + runtime.GOOS + "-" + runtime.GOARCH + ".tar.gz"
+		tarGz := tmp + fmt.Sprintf("/go%s.tar.gz", v)
+		goDownloadUrl := fmt.Sprintf("https://go.dev/dl/go%s.%s-%s.tar.gz", v, runtime.GOOS, runtime.GOARCH)
 		if err = pkg.DownloadFile(tarGz, goDownloadUrl); err != nil {
-			return errors.New(fmt.Sprintf("Error: go1.20.1 download failed.\n%s", err.Error()))
+			return errors.New(fmt.Sprintf("Error: go%s download failed.\n%s", v, err.Error()))
 		}
 
 		// ungzip downloaded go binary
-		fmt.Println("Info: ungziping temp go binary")
-		tar := tmp + "/go1.20.1.tar"
+		fmt.Println("Info: unpacking temp go binary")
+		tar := fmt.Sprintf("%s/go%s.tar", tmp, v)
 		if err := pkg.UnGzip(tarGz, tar); err != nil {
 			return errors.New(fmt.Sprintf("Error: file, %s, could not be ungziped.\n%s", tarGz, err.Error()))
 		}
 
 		// untar downloaded go binary
-		fmt.Println("Info: untaring temp go binary")
-		src := tmp
-		if err := pkg.Untar(tar, src); err != nil {
+		if err := pkg.Untar(tar, tmp); err != nil {
 			return errors.New(fmt.Sprintf("Error: file, %s, could not be untared.\n%s", tar, err.Error()))
 		}
 
 		// use the temp go version to install a permanent go version
-		fmt.Println("Info: installing specified go version")
-		tmpBin := src + "/go/bin/go"
+		fmt.Println("Info: installing requested go version")
+		tmpBin := fmt.Sprintf("%s/go/bin/go", tmp)
 		if err := installVersion(tmpBin, v); err != nil {
 			return err
 		}
@@ -90,16 +95,30 @@ func Install(args map[string]commando.ArgValue) error {
 	return nil
 }
 
-func List() error {
+func getVersions() (versions []string, err error) {
 	src := pkg.GetSrcDir()
-	versions, err := os.ReadDir(src)
+	entries, err := os.ReadDir(src)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error: src directory, %s, could not be read.\n%s", src, err.Error()))
+		return versions, errors.New(fmt.Sprintf("Error: src directory, %s, could not be read.\n%s", src, err.Error()))
+	}
+
+	for _, e := range entries {
+		version := pkg.TrimLeftChars(e.Name(), 2)
+		versions = append(versions, version)
+	}
+
+	return versions, err
+}
+
+func List() error {
+	versions, err := getVersions()
+	if err != nil {
+		return err
 	}
 
 	fmt.Println("Installed go versions:")
 	for _, v := range versions {
-		fmt.Println(pkg.TrimLeftChars(v.Name(), 2))
+		fmt.Println(v)
 	}
 
 	return nil
