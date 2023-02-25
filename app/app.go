@@ -28,6 +28,15 @@ func installVersion(cmd string, version string) error {
 		return errors.New(fmt.Sprintf("Error: go%s could not be downloaded\n%s", version, err.Error()))
 	}
 
+	versions, err := getVersions()
+	if err != nil {
+		return err
+	}
+
+	if !pkg.BinExists("go") && len(versions) > 0 {
+		fmt.Println("Warning: no default go version has been set. Use `govs list` to see installed vesions. Then set a default with `govs set <version>`. Ignore this message if you ran `govs get <version>`.")
+	}
+
 	return nil
 }
 
@@ -88,8 +97,6 @@ func Install(args map[string]commando.ArgValue) error {
 		if err := installVersion(tmpBin, v); err != nil {
 			return err
 		}
-
-		// warn if no go binary exists in the path and recommend that the user run govs set v
 	}
 
 	return nil
@@ -131,10 +138,8 @@ func Set(args map[string]commando.ArgValue) error {
 	vBin := fmt.Sprintf("%s/go%s", d, v)
 	goBin := fmt.Sprintf("%s/go", d)
 
-	// todo: warn if the goroot is not $HOME/sdk/go* - why?
-
 	if !pkg.FileExists(vBin) {
-		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs install %s` and try again", v, v))
+		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs get %s` to install and set it as the default go version.", v, v))
 	}
 
 	if _, err := os.Lstat(goBin); err == nil {
@@ -155,8 +160,6 @@ func Remove(args map[string]commando.ArgValue) error {
 	srcDir := pkg.GetSrcDir()
 	v := args["version"].Value
 
-	// todo: warn against removing currently set version
-
 	vBin := fmt.Sprintf("%s/go%s", binDir, v)
 	vSrc := fmt.Sprintf("%s/go%s", srcDir, v)
 
@@ -174,6 +177,21 @@ func Remove(args map[string]commando.ArgValue) error {
 		if err := os.RemoveAll(vSrc); err != nil {
 			return errors.New(fmt.Sprintf("Error: go version %s src, %s, could not be removed.\n%s", v, vSrc, err.Error()))
 		}
+	}
+
+	fmt.Printf("Success: go%s has been removed.\n", v)
+
+	versions, err := getVersions()
+	if err != nil {
+		return err
+	}
+
+	if !pkg.BinExists("go") && len(versions) == 0 {
+		fmt.Println("Warning: you have removed the only go version from your system. Use `govs get <version>` to install and set a new default.")
+	}
+
+	if !pkg.BinExists("go") && len(versions) > 0 {
+		fmt.Println("Warning: you have removed the default go version from your system. Use `govs list` to see installed vesions. Then set a new default with `govs set <version>`.")
 	}
 
 	return nil
