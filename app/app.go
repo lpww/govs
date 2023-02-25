@@ -123,7 +123,6 @@ func List() error {
 		return err
 	}
 
-	fmt.Println("Installed go versions:")
 	for _, v := range versions {
 		fmt.Println(v)
 	}
@@ -151,6 +150,8 @@ func Set(args map[string]commando.ArgValue) error {
 	if err := os.Symlink(vBin, goBin); err != nil {
 		return errors.New(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", v, err.Error()))
 	}
+
+	fmt.Printf("Success: the go command will now use %s.\n", v)
 
 	return nil
 }
