@@ -87,27 +87,32 @@ func FileExists(path string) bool {
 	return !info.IsDir()
 }
 
+func installVersion(version string) error {
+	vUrl := fmt.Sprintf("golang.org/dl/go%s@latest", version)
+	install := exec.Command("go", "install", vUrl)
+	install.Stdout = os.Stdout
+	install.Stderr = os.Stderr
+	if err := install.Run(); err != nil {
+		return errors.New(fmt.Sprintf("Error: go%s could not be installed. Please ensure it is a valid version\n%s", version, err.Error()))
+	}
+
+	vBin := fmt.Sprintf("go%s", version)
+	download := exec.Command(vBin, "download")
+	download.Stdout = os.Stdout
+	download.Stderr = os.Stderr
+	if err := download.Run(); err != nil {
+		return errors.New(fmt.Sprintf("Error: go%s could not be downloaded\n%s", version, err.Error()))
+	}
+
+	return nil
+}
+
 func Install(args map[string]commando.ArgValue) error {
 	v := args["version"].Value
 
 	if BinExists("go") {
-		// run go install and go download
+		return installVersion(v)
 
-		vUrl := fmt.Sprintf("golang.org/dl/go%s@latest", v)
-		install := exec.Command("go", "install", vUrl)
-		install.Stdout = os.Stdout
-		install.Stderr = os.Stderr
-		if err := install.Run(); err != nil {
-			return errors.New(fmt.Sprintf("Error: go%s could not be installed. Please ensure it is a valid version", v))
-		}
-
-		vBin := fmt.Sprintf("go%s", v)
-		download := exec.Command(vBin, "download")
-		download.Stdout = os.Stdout
-		download.Stderr = os.Stderr
-		if err := download.Run(); err != nil {
-			return errors.New(fmt.Sprintf("Error: go%s could not be downloaded", v))
-		}
 	} else {
 		// install go to temp dir
 		// if tmp, err := os.MkdirTemp("", "govs"); err != nil {
@@ -127,6 +132,9 @@ func Install(args map[string]commando.ArgValue) error {
 	// unzip downloaded go binary
 
 	// run the bin exists logic above
+	if err := installVersion(v); err != nil {
+		return err
+	}
 
 	// uninstall temp go
 
