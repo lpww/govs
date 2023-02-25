@@ -8,8 +8,8 @@ import (
 	"github.com/thatisuday/commando"
 )
 
-func FatalError(message string) {
-	fmt.Println(message)
+func FatalError(err error) {
+	fmt.Println(err.Error())
 	os.Exit(1)
 }
 
@@ -27,7 +27,7 @@ func main() {
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			err := app.Install(args)
 			if err != nil {
-				FatalError(err.Error()) // todo: refactor to take an error and extract the string within fatalerror
+				FatalError(err)
 			}
 		})
 
@@ -39,7 +39,7 @@ func main() {
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			err := app.Set(args)
 			if err != nil {
-				FatalError(err.Error())
+				FatalError(err)
 			}
 		})
 
@@ -51,7 +51,7 @@ func main() {
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			err := app.Remove(args)
 			if err != nil {
-				FatalError(err.Error())
+				FatalError(err)
 			}
 		})
 
