@@ -16,6 +16,50 @@ func BinExists(path string) bool {
 	return true
 }
 
+type Env struct {
+	Key   string
+	Value string
+}
+
+var GOPATH = Env{"GOPATH", ""}
+
+var HOME = Env{"HOME", ""}
+
+func GetEnv(e Env, defaultValue string) Env {
+	v, ok := os.LookupEnv(e.Key)
+
+	if !ok || v == "" {
+		fmt.Printf("Warning: $%s not set. Using default value of %s\n", e.Key, defaultValue)
+		return Env{e.Key, defaultValue}
+	}
+
+	return Env{e.Key, v}
+}
+
+type Dirs struct {
+	Bin string
+	Src string
+}
+
+// todo: remove this fn and use ExpandEnv inline
+func GetDirs() Dirs {
+	home := GetEnv(HOME, "")
+	goPath := GetEnv(GOPATH, fmt.Sprintf("%s/go", home.Value))
+
+	return Dirs{
+		Bin: fmt.Sprintf("%s/bin", goPath.Value),
+		Src: fmt.Sprintf("%s/sdk", home.Value),
+	}
+}
+
+func FileExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 func Install(args map[string]commando.ArgValue) error {
 	v := args["version"].Value
 
@@ -60,6 +104,32 @@ func Install(args map[string]commando.ArgValue) error {
 	// uninstall temp go
 
 	// warn if no go binary exists in the path and recommend that the user run govs set v
+
+	return nil
+}
+
+func Set(args map[string]commando.ArgValue) error {
+	d := GetDirs()
+	v := args["version"].Value
+
+	vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
+	goBin := fmt.Sprintf("%s/go", d.Bin)
+
+	// todo: warn if the goroot is not $HOME/sdk/go* - why?
+
+	if !FileExists(vBin) {
+		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs install %s` and try again", v, v))
+	}
+
+	if _, err := os.Lstat(goBin); err == nil {
+		if err := os.Remove(goBin); err != nil {
+			return errors.New(fmt.Sprintf("Error: existing go binary, %s, could not be removed.\n%s", goBin, err.Error()))
+		}
+	}
+
+	if err := os.Symlink(vBin, goBin); err != nil {
+		return errors.New(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", v, err.Error()))
+	}
 
 	return nil
 }

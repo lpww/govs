@@ -98,7 +98,7 @@ func main() {
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			err := app.Install(args)
 			if err != nil {
-				FatalError(err.Error())
+				FatalError(err.Error()) // todo: refactor to take an error and extract the string within fatalerror
 			}
 		})
 
@@ -108,26 +108,9 @@ func main() {
 		SetShortDescription("Set the default go version").
 		AddArgument("version", "The version to set as the default", "").
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
-			d := GetDirs()
-			v := args["version"].Value
-
-			vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
-			goBin := fmt.Sprintf("%s/go", d.Bin)
-
-			// todo: warn if the goroot is not $HOME/sdk/go* - why?
-
-			if !FileExists(vBin) {
-				FatalError(fmt.Sprintf("Error: go version %s is not installed. Please run `govs install %s` and try again", v, v))
-			}
-
-			if _, err := os.Lstat(goBin); err == nil {
-				if err := os.Remove(goBin); err != nil {
-					FatalError(fmt.Sprintf("Error: existing go binary, %s, could not be removed.\n%s", goBin, err.Error()))
-				}
-			}
-
-			if err := os.Symlink(vBin, goBin); err != nil {
-				FatalError(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", v, err.Error()))
+			err := app.Set(args)
+			if err != nil {
+				FatalError(err.Error())
 			}
 		})
 
