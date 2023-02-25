@@ -3,11 +3,38 @@ package app
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 
 	"github.com/thatisuday/commando"
 )
+
+func DownloadFile(filepath string, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	return err
+}
+
+func DirExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return info.IsDir()
+}
 
 func BinExists(path string) bool {
 	if _, err := exec.LookPath(path); err != nil {
@@ -78,7 +105,7 @@ func Install(args map[string]commando.ArgValue) error {
 		download := exec.Command(vBin, "download")
 		download.Stdout = os.Stdout
 		download.Stderr = os.Stderr
-		if err := download.Run(); err == nil {
+		if err := download.Run(); err != nil {
 			return errors.New(fmt.Sprintf("Error: go%s could not be downloaded", v))
 		}
 	} else {
@@ -129,6 +156,34 @@ func Set(args map[string]commando.ArgValue) error {
 
 	if err := os.Symlink(vBin, goBin); err != nil {
 		return errors.New(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", v, err.Error()))
+	}
+
+	return nil
+}
+
+func Remove(args map[string]commando.ArgValue) error {
+	d := GetDirs()
+	v := args["version"].Value
+
+	// todo: warn against removing currently set version
+
+	vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
+	vSrc := fmt.Sprintf("%s/go%s", d.Src, v)
+
+	if !FileExists(vBin) && !DirExists(vSrc) {
+		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs list` to see the installed versions", v))
+	}
+
+	if FileExists(vBin) {
+		if err := os.Remove(vBin); err != nil {
+			return errors.New(fmt.Sprintf("Error: go version %s binary, %s, could not be removed.\n%s", v, vBin, err.Error()))
+		}
+	}
+
+	if DirExists(vSrc) {
+		if err := os.RemoveAll(vSrc); err != nil {
+			return errors.New(fmt.Sprintf("Error: go version %s src, %s, could not be removed.\n%s", v, vSrc, err.Error()))
+		}
 	}
 
 	return nil
