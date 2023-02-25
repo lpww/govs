@@ -1,4 +1,4 @@
-module github.com/lpww/govs
+module govs
 
 go 1.20
 
