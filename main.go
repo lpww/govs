@@ -32,6 +32,17 @@ func main() {
 		})
 
 	commando.
+		Register("list").
+		SetDescription("This command lists the installed go versions available on the system").
+		SetShortDescription("List installed go versions").
+		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
+			err := app.List()
+			if err != nil {
+				FatalError(err)
+			}
+		})
+
+	commando.
 		Register("set").
 		SetDescription("This command uses a symlink to create a default version for the `go` command").
 		SetShortDescription("Set the default go version").

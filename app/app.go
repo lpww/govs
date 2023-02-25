@@ -66,6 +66,21 @@ func Install(args map[string]commando.ArgValue) error {
 	return nil
 }
 
+func List() error {
+	src := pkg.GetSrcDir()
+	versions, err := os.ReadDir(src)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error: src directory, %s, could not be read.\n%s", src, err.Error()))
+	}
+
+	fmt.Println("Installed go versions:")
+	for _, v := range versions {
+		fmt.Println(pkg.TrimLeftChars(v.Name(), 2))
+	}
+
+	return nil
+}
+
 func Set(args map[string]commando.ArgValue) error {
 	d := pkg.GetBinDir()
 	v := args["version"].Value
