@@ -44,10 +44,25 @@ func main() {
 		})
 
 	commando.
+		Register("get").
+		SetDescription("This command will install the specified version and set it as the default version for the `go` command").
+		SetShortDescription("Install and set the default go version").
+		AddArgument("version", "The version to install and set as the default", "").
+		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
+			if err := app.Install(args); err != nil {
+				FatalError(err)
+			}
+
+			if err := app.Set(args); err != nil {
+				FatalError(err)
+			}
+		})
+
+	commando.
 		Register("remove").
 		SetDescription("This command removes the specified version of go").
 		SetShortDescription("Remove a go version").
-		AddArgument("version", "The version to set as the default", "").
+		AddArgument("version", "The version to remove", "").
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			err := app.Remove(args)
 			if err != nil {
