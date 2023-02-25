@@ -11,6 +11,11 @@ import (
 	"github.com/thatisuday/commando"
 )
 
+func Releases() error {
+	fmt.Println("A full go release history can be found here: https://go.dev/doc/devel/release")
+	return nil
+}
+
 func installVersion(cmd string, version string) error {
 	vUrl := fmt.Sprintf("golang.org/dl/go%s@latest", version)
 	install := exec.Command(cmd, "install", vUrl)

@@ -20,6 +20,17 @@ func main() {
 		SetDescription("A tool for installing and managing multiple go versions")
 
 	commando.
+		Register("releases").
+		SetDescription("This command displays all official go language releases available for download").
+		SetShortDescription("List available go releases").
+		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
+			err := app.Releases()
+			if err != nil {
+				FatalError(err)
+			}
+		})
+
+	commando.
 		Register("install").
 		SetDescription("This command installs the specified version of go and makes it available with a version specific binary, go<version>. Eg: `go1.18.5`").
 		SetShortDescription("Install a go version").
