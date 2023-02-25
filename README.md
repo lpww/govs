@@ -3,6 +3,24 @@
 govs. A tool for installing and managing multiple go versions. A cross platform
 solution written in go.
 
+## Example
+
+```
+$ govs get 1.20 # install go v1.20 and set it as the default `go` version
+$ govs install 1.19 # install go v1.19 and make it executable with `go1.19`
+$ govs set 1.19 # set go v1.19 as the default `go` version
+$ govs list # list installed go versions (1.19 and 1.20 in this example)
+$ govs remove 1.20 # remove go v1.20
+```
+
+## Installation
+
+1. Download the latest binary release
+2. Add `$GOPATH/bin` to your path
+
+If you already have multiple go versions installed using the recommended
+approach, they will be automatically detected by govs.
+
 ## Overview
 
 govs can be used to manage multiple go versions on your system. It is
@@ -15,25 +33,16 @@ according the go team with some convient extras.
 Go's recommended approach does come with some minor pain points that we aim to
 improve:
 
-1. The first is the requirement for go to already be installed on the
-machine. This causes issues when attempting to symlink an older version to the
-`go` command. By writing this tool in go, we no longer need it as a dependency.
+1. The first is the requirement for a version of go to already be installed on the
+machine. This can cause issues when attempting to symlink a different version to the
+`go` command.
 
 2. The second is that symlinks need to be handled manually. It is easy to forget
 the exact syntax and paths if you don't switch versions very often. Our `govs
 set` command simplifies this process.
 
 3. The third is that the recommended approach requires manually deleting old
-versions. We now have a `govs remove` command to handle that.
-
-## Installation
-
-1. Download and extract the relevant binary for your system
-2. Make it executable `chmod +x govs` ?? (is this needed with a go binary?)
-3. Add `$GOPATH/bin` to your path
-
-If you already have multiple go versions installed using the recommended
-approach, they will be automatically detected by govs.
+versions. We have a `govs remove` command to handle that.
 
 ## API
 
@@ -61,7 +70,7 @@ Remove a specific go version with `govs remove {version}. Eg: `govs remove
 
 List the currently installed go versions with `govs list`.
 
-### versions
+### versions (not implemented)
 
 List all available go versions with `govs versions`.
 
@@ -102,5 +111,5 @@ going forward.
 If you want to remove go completely, you can use govs to delete all go versions
 before removing govs itself.
 
-1. Remove all go versions: `govs versions | xargs govs remove`
+1. Remove all go versions: `govs list | xargs -n 1 govs remove`
 2. Remove the binary
