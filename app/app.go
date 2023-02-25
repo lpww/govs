@@ -3,45 +3,12 @@ package app
 import (
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
+	"govs/pkg"
 	"os"
 	"os/exec"
 
 	"github.com/thatisuday/commando"
 )
-
-func DownloadFile(filepath string, url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, resp.Body)
-	return err
-}
-
-func DirExists(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return info.IsDir()
-}
-
-func BinExists(path string) bool {
-	if _, err := exec.LookPath(path); err != nil {
-		return false
-	}
-	return true
-}
 
 type Env struct {
 	Key   string
@@ -79,14 +46,6 @@ func GetDirs() Dirs {
 	}
 }
 
-func FileExists(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
-
 func installVersion(version string) error {
 	vUrl := fmt.Sprintf("golang.org/dl/go%s@latest", version)
 	install := exec.Command("go", "install", vUrl)
@@ -110,7 +69,7 @@ func installVersion(version string) error {
 func Install(args map[string]commando.ArgValue) error {
 	v := args["version"].Value
 
-	if BinExists("go") {
+	if pkg.BinExists("go") {
 		return installVersion(v)
 
 	} else {
@@ -123,7 +82,7 @@ func Install(args map[string]commando.ArgValue) error {
 		// // install go to temp dir
 		// goDownloadUrl := "https://go.dev/dl/go1.20.1." + runtime.GOOS + "-" + runtime.GOARCH + ".tar.gz"
 		// fmt.Println(goDownloadUrl)
-		// err := DownloadFile(tmp+"/go1.20.1.tar.gz", goDownloadUrl)
+		// err := pkg.DownloadFile(tmp+"/go1.20.1.tar.gz", goDownloadUrl)
 		// if err != nil {
 		// 	FatalError(fmt.Sprintf("\nError: go1.20.1 download failed.\n%s", err.Error()))
 		// }
@@ -152,7 +111,7 @@ func Set(args map[string]commando.ArgValue) error {
 
 	// todo: warn if the goroot is not $HOME/sdk/go* - why?
 
-	if !FileExists(vBin) {
+	if !pkg.FileExists(vBin) {
 		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs install %s` and try again", v, v))
 	}
 
@@ -178,17 +137,17 @@ func Remove(args map[string]commando.ArgValue) error {
 	vBin := fmt.Sprintf("%s/go%s", d.Bin, v)
 	vSrc := fmt.Sprintf("%s/go%s", d.Src, v)
 
-	if !FileExists(vBin) && !DirExists(vSrc) {
+	if !pkg.FileExists(vBin) && !pkg.DirExists(vSrc) {
 		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs list` to see the installed versions", v))
 	}
 
-	if FileExists(vBin) {
+	if pkg.FileExists(vBin) {
 		if err := os.Remove(vBin); err != nil {
 			return errors.New(fmt.Sprintf("Error: go version %s binary, %s, could not be removed.\n%s", v, vBin, err.Error()))
 		}
 	}
 
-	if DirExists(vSrc) {
+	if pkg.DirExists(vSrc) {
 		if err := os.RemoveAll(vSrc); err != nil {
 			return errors.New(fmt.Sprintf("Error: go version %s src, %s, could not be removed.\n%s", v, vSrc, err.Error()))
 		}
