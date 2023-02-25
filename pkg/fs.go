@@ -1,8 +1,6 @@
 package pkg
 
 import (
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 )
@@ -28,21 +26,4 @@ func FileExists(path string) bool {
 		return false
 	}
 	return !info.IsDir()
-}
-
-func DownloadFile(filepath string, url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, resp.Body)
-	return err
 }
