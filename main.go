@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"govs/app"
 	"os"
+
+	"github.com/lpww/govs/app"
 
 	"github.com/thatisuday/commando"
 )

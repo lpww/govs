@@ -3,11 +3,11 @@ package app
 import (
 	"errors"
 	"fmt"
-	"govs/pkg"
 	"os"
 	"os/exec"
 	"runtime"
 
+	"github.com/lpww/govs/pkg"
 	"github.com/thatisuday/commando"
 )
 
