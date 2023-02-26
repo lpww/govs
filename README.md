@@ -3,6 +3,8 @@
 govs. A tool for installing and managing multiple go versions. A cross platform
 solution written in go.
 
+![govs-demo](https://user-images.githubusercontent.com/8637335/221433252-01562ff2-3956-41ed-ab0d-2f3c68cb4be5.gif)
+
 ## Example
 
 ```
