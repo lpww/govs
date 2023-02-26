@@ -15,8 +15,10 @@ $ govs remove 1.20 # remove go v1.20
 
 ## Installation
 
-1. Download one of the [latest binary releases](https://github.com/lpww/govs/releases)
-2. Add `$GOPATH/bin` to your path
+0. Add `$GOPATH/bin` to your path
+1. Install with `go install github.com/lpww/govs@latest`
+
+Alternatively, download one of the [latest binary releases](https://github.com/lpww/govs/releases).
 
 If you already have multiple go versions installed using the recommended
 approach, they will be automatically detected by govs.
