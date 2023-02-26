@@ -14,8 +14,9 @@ release:
 	@echo "Creating Release Binaries"
 	go install github.com/mitchellh/gox@latest
 	mkdir -p build
-	gox -output="build/{{.OS}}_{{.Arch}}/{{.Dir}}" -osarch="darwin/amd64 linux/amd64 windows/amd64 openbsd/amd64"
+	gox -output="build/{{.OS}}_{{.Arch}}/{{.Dir}}" -osarch="darwin/amd64 darwin/arm64 linux/amd64 windows/amd64 openbsd/amd64"
 	tar czf build/darwin_amd64.tar.gz build/darwin_amd64
+	tar czf build/darwin_arm64.tar.gz build/darwin_arm64
 	tar czf build/linux_amd64.tar.gz build/linux_amd64
 	tar czf build/windows_amd64.tar.gz build/windows_amd64
 	tar czf build/openbsd_amd64.tar.gz build/openbsd_amd64
