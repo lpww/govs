@@ -74,6 +74,14 @@ List the currently installed go versions with `govs list`.
 
 List all available go versions with `govs versions`.
 
+### help
+
+List all the available commands and their descriptions with `govs help`
+
+### version
+
+Display the govs version with `govs version`
+
 ## Details
 
 ### GOPATH
