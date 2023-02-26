@@ -72,9 +72,9 @@ Remove a specific go version with `govs remove {version}. Eg: `govs remove
 
 List the currently installed go versions with `govs list`.
 
-### versions
+### releases
 
-List all available go versions with `govs versions`.
+List all official go releases with `govs releases`.
 
 ### help
 
