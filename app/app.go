@@ -136,24 +136,25 @@ func List() error {
 }
 
 func Set(args map[string]commando.ArgValue) error {
-	d := pkg.GetBinDir()
 	v := args["version"].Value
 
-	vBin := fmt.Sprintf("%s/go%s", d, v)
-	goBin := fmt.Sprintf("%s/go", d)
+	b := pkg.GetBinDir()
+	s := pkg.GetSrcDir()
 
-	if !pkg.FileExists(vBin) {
-		return errors.New(fmt.Sprintf("Error: go version %s is not installed. Please run `govs get %s` to install and set it as the default go version.", v, v))
+	vDir := fmt.Sprintf("%s/go%s", s, v)
+
+	vGoBin := fmt.Sprintf("%s/bin/go", vDir)
+	goBin := fmt.Sprintf("%s/go", b)
+
+	if err := pkg.Symlink(vGoBin, goBin); err != nil {
+		return fmt.Errorf("[pkg.Symlink]: %w", err)
 	}
 
-	if _, err := os.Lstat(goBin); err == nil {
-		if err := os.Remove(goBin); err != nil {
-			return errors.New(fmt.Sprintf("Error: existing go binary, %s, could not be removed.\n%s", goBin, err.Error()))
-		}
-	}
+	vGofmtBin := fmt.Sprintf("%s/bin/gofmt", vDir)
+	gofmtBin := fmt.Sprintf("%s/gofmt", b)
 
-	if err := os.Symlink(vBin, goBin); err != nil {
-		return errors.New(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", v, err.Error()))
+	if err := pkg.Symlink(vGofmtBin, gofmtBin); err != nil {
+		return fmt.Errorf("[pkg.Symlink]: %w", err)
 	}
 
 	fmt.Printf("Success: the go command will now use %s.\n", v)

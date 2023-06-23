@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 )
@@ -26,4 +28,18 @@ func FileExists(path string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func Symlink(oldname string, newname string) error {
+	if _, err := os.Lstat(newname); err == nil {
+		if err := os.Remove(newname); err != nil {
+			return errors.New(fmt.Sprintf("Error: existing binary, %s, could not be removed.\n%s", newname, err.Error()))
+		}
+	}
+
+	if err := os.Symlink(oldname, newname); err != nil {
+		return errors.New(fmt.Sprintf("Error: the default go version could not be set to %s.\n%s", oldname, err.Error()))
+	}
+
+	return nil
 }
