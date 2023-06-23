@@ -17,7 +17,7 @@ func FatalError(err error) {
 func main() {
 	commando.
 		SetExecutableName("govs").
-		SetVersion("v1.0.1").
+		SetVersion("v1.0.3").
 		SetDescription("A tool for installing and managing multiple go versions")
 
 	commando.
